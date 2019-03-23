@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BooksServices.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -26,10 +27,12 @@ namespace BooksServiceSampleHost
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddSingleton<IBookChaptersService, BookChaptersService>();
+            services.AddSingleton<SampleChapters>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, SampleChapters sampleChapters)
         {
             if (env.IsDevelopment())
             {
@@ -43,6 +46,7 @@ namespace BooksServiceSampleHost
 
             app.UseHttpsRedirection();
             app.UseMvc();
+            sampleChapters.CreateSampleChapters();
         }
     }
 }
