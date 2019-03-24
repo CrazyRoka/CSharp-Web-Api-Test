@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace APIBookService.Controllers
 {
     [Produces("application/json", "application/xml")]
-    [Route("api/{controller}")]
+    [Route("api/[controller]")]
     public class BookChaptersController : Controller
     {
         private readonly IBookChaptersService _bookChaptersService;
@@ -19,13 +20,14 @@ namespace APIBookService.Controllers
 
         //GET api/bookchapters
         [HttpGet]
-        public IEnumerable<BookChapter> GetBookChapters() => _bookChaptersService.GetAll();
+        public Task<IEnumerable<BookChapter>> GetBookChaptersAsync() =>
+            _bookChaptersService.GetAllAsync();
 
         //GET api/bookchapters/guid
-        [HttpGet("{id}", Name = nameof(GetBookChapterById))]
-        public IActionResult GetBookChapterById(Guid id)
+        [HttpGet("{id}", Name = nameof(GetBookChapterByIdAsync))]
+        public async Task<IActionResult> GetBookChapterByIdAsync(Guid id)
         {
-            BookChapter chapter = _bookChaptersService.Find(id);
+            BookChapter chapter = await _bookChaptersService.FindAsync(id);
             if(chapter == null)
             {
                 return NotFound();
@@ -36,36 +38,54 @@ namespace APIBookService.Controllers
             }
         }
 
-        //POST api/bookchapters
+        /// <summary>
+        /// Creates a BookChapter
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///     POST api/bookchapters
+        ///     {
+        ///         Number: 42,
+        ///         Title: "Sample Title",
+        ///         Pages: 98
+        ///     }
+        /// </remarks>
+        /// <param name="chapter"></param>
+        /// <returns>A newly created book chapter</returns>
+        /// <response code="201">Returns the newly created book chapter</response>
+        /// <response code="400">If the chapter is null</response>
         [HttpPost]
-        public IActionResult PostBookChapter([FromBody]BookChapter chapter)
+        [ProducesResponseType(typeof(BookChapter), 200)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> PostBookChapterAsync([FromBody]BookChapter chapter)
         {
             if(chapter == null)
             {
                 return BadRequest();
             }
-            _bookChaptersService.Add(chapter);
-            return CreatedAtRoute(nameof(GetBookChapterById), new { id = chapter.Id }, chapter);
+            await _bookChaptersService.AddAsync(chapter);
+            return CreatedAtRoute(nameof(GetBookChapterByIdAsync), new { id = chapter.Id }, chapter);
         }
 
         //PUT api/bookchapters/guid
         [HttpPut("{id}")]
-        public IActionResult PutBookChapter(Guid id, [FromBody]BookChapter chapter)
+        public async Task<IActionResult> PutBookChapterAsync(Guid id, [FromBody]BookChapter chapter)
         {
             if(chapter == null || id != chapter.Id)
             {
                 return BadRequest();
             }
-            if(_bookChaptersService.Find(id) == null)
+            if(await _bookChaptersService.FindAsync(id) == null)
             {
                 return NotFound();
             }
-            _bookChaptersService.Update(chapter);
+            await _bookChaptersService.UpdateAsync(chapter);
             return new NoContentResult();
         }
 
         //DELETE api/bookchapters/guid
         [HttpDelete("{id}")]
-        public void Delete(Guid id) => _bookChaptersService.Remove(id);
+        public async Task Delete(Guid id) =>
+            await _bookChaptersService.RemoveAsync(id);
     }
 }

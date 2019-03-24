@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using BooksServices.Models;
 
 namespace BooksServices.Services
@@ -9,35 +10,43 @@ namespace BooksServices.Services
     public class BookChaptersService : IBookChaptersService
     {
         private readonly ConcurrentDictionary<Guid, BookChapter> _chapters = new ConcurrentDictionary<Guid, BookChapter>();
-        public void Add(BookChapter chapter)
+
+        public Task AddAsync(BookChapter chapter)
         {
             chapter.Id = Guid.NewGuid();
             _chapters[chapter.Id] = chapter;
+            return Task.CompletedTask;
         }
 
-        public void AddRange(IEnumerable<BookChapter> chapters)
+        public Task AddRangeAsync(IEnumerable<BookChapter> chapters)
         {
-            foreach(var chapter in chapters)
+            foreach (var chapter in chapters)
             {
-                Add(chapter);
+                chapter.Id = Guid.NewGuid();
+                _chapters[chapter.Id] = chapter;
             }
+            return Task.CompletedTask;
         }
 
-        public BookChapter Find(Guid id)
+        public Task<BookChapter> RemoveAsync(Guid id)
+        {
+            _chapters.TryRemove(id, out BookChapter removed);
+            return Task.FromResult(removed);
+        }
+
+        public Task<IEnumerable<BookChapter>> GetAllAsync() =>
+          Task.FromResult<IEnumerable<BookChapter>>(_chapters.Values);
+
+        public Task<BookChapter> FindAsync(Guid id)
         {
             _chapters.TryGetValue(id, out BookChapter chapter);
-            return chapter;
+            return Task.FromResult(chapter);
         }
 
-        public IEnumerable<BookChapter> GetAll() => _chapters.Values;
-
-        public BookChapter Remove(Guid id)
+        public Task UpdateAsync(BookChapter chapter)
         {
-            BookChapter removed;
-            _chapters.TryRemove(id, out removed);
-            return removed;
+            _chapters[chapter.Id] = chapter;
+            return Task.CompletedTask;
         }
-
-        public void Update(BookChapter chapter) => _chapters[chapter.Id] = chapter;
     }
 }

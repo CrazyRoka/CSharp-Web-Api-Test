@@ -1,5 +1,6 @@
 ﻿using BooksServices.Models;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BooksServices.Services
 {
@@ -13,32 +14,31 @@ namespace BooksServices.Services
 
         private string[] sampleTitles = new[]
         {
-            ".NET Application Architectures",
+            ".NET Applications and Tools",
             "Core C#",
             "Objects and Types",
             "Object-Oriented Programming with C#",
             "Generics",
             "Operators and Casts",
             "Arrays",
-            "Delegates, Lambdas, and Events",
-            "Windows Communication Foundation"
+            "Delegates, Lambdas, and Events"
         };
-        private int[] chapterNumbers = { 1, 2, 3, 4, 5, 6, 7, 8, 44 };
-        private int[] numberPages = { 35, 42, 33, 20, 24, 38, 20, 32, 44 };
+        private int[] numberPages = { 35, 42, 33, 20, 24, 38, 20, 32 };
 
-        public void CreateSampleChapters()
+
+        public async Task CreateSampleChaptersAsync()
         {
             var chapters = new List<BookChapter>();
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 8; i++)
             {
                 chapters.Add(new BookChapter
                 {
-                    Number = chapterNumbers[i],
+                    Number = i,
                     Title = sampleTitles[i],
                     Pages = numberPages[i]
                 });
             }
-            _bookChaptersService.AddRange(chapters);
+            await _bookChaptersService.AddRangeAsync(chapters);
         }
     }
 }
